@@ -97,10 +97,10 @@ class GolCheckinHandler(BaseCheckinHandler):
                 await locator_field.fill(pnr)
                 await origin_field.fill(origin)
 
-                await page.wait_for_timeout(1200)
+                await page.wait_for_timeout(2500)
 
                 await origin_field.press("ArrowDown")
-                await page.wait_for_timeout(500)
+                await page.wait_for_timeout(1250)
                 await origin_field.press("Enter")
 
                 await page.wait_for_timeout(4000)

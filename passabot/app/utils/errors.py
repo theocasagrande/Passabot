@@ -1,0 +1,2 @@
+class CheckinError(Exception):
+    pass

@@ -1,7 +1,7 @@
 import traceback
 
 from playwright.async_api import async_playwright
-
+from playwright_stealth import Stealth
 from app.airlines.base import BaseCheckinHandler
 from app.utils.errors import CheckinError
 
@@ -74,8 +74,8 @@ class GolCheckinHandler(BaseCheckinHandler):
             if not origin:
                 raise CheckinError("Origem vazia")
 
-            async with async_playwright() as p:
-                browser = await p.chromium.launch(headless=False)
+            async with Stealth().use_async(async_playwright()) as p:
+                browser = await p.chromium.launch(headless=True)
                 page = await browser.new_page()
                 page.set_default_timeout(15000)
 

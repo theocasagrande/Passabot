@@ -75,9 +75,9 @@ class GolCheckinHandler(BaseCheckinHandler):
                 raise CheckinError("Origem vazia")
 
             async with Stealth().use_async(async_playwright()) as p:
-                browser = await p.chromium.launch(headless=True)
+                browser = await p.chromium.launch(headless=False)
                 page = await browser.new_page()
-                page.set_default_timeout(15000)
+
 
                 await page.goto(self.CHECKIN_URL, wait_until="domcontentloaded")
                 await page.wait_for_timeout(3000)
@@ -110,7 +110,13 @@ class GolCheckinHandler(BaseCheckinHandler):
                 if modal_text:
                     await self._close_modal(page)
                     raise CheckinError(modal_text)
+                await page.locator("gol-button#completeData").click()
+                await self._close_cookie_banner(page)
 
+                await page.locator("gol-modal-passengers #btn-next-trips-complement-passengers").click()
+                await page.locator("#btn-next-trips-complement-baggage-restrition").click()
+                await page.wait_for_timeout(4000)
+                await page.locator("gol-button #contract-service-baggage").click()
                 await browser.close()
                 browser = None
 

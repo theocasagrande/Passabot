@@ -8,7 +8,7 @@ orchestrator = CheckinOrchestrator()
 
 async def process_checkin(payload):
     try:
-        result = await asyncio.wait_for(orchestrator.run(payload), timeout=60)
+        result = await asyncio.wait_for(orchestrator.run(payload), timeout=150)
         return CheckinResponse(**result)
 
     except asyncio.TimeoutError:
@@ -17,7 +17,7 @@ async def process_checkin(payload):
             checked_in=False,
             boarding_pass=None,
             message="Timeout no check-in",
-            detail="A execução excedeu 60 segundos.",
+            detail="A execução excedeu 150 segundos.",
         )
 
     except Exception as e:

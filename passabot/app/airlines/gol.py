@@ -5,6 +5,8 @@ from playwright_stealth import Stealth
 from app.airlines.base import BaseCheckinHandler
 from app.utils.errors import CheckinError
 
+import os
+
 
 class GolCheckinHandler(BaseCheckinHandler):
     CHECKIN_URL = "https://b2c.voegol.com.br/check-in/"
@@ -73,7 +75,7 @@ class GolCheckinHandler(BaseCheckinHandler):
                 raise CheckinError("PNR vazio")
             if not origin:
                 raise CheckinError("Origem vazia")
-
+            os.makedirs("passabot", exist_ok=True)
             async with Stealth().use_async(async_playwright()) as p:
                 browser = await p.chromium.launch(headless=False)
                 page = await browser.new_page()
@@ -112,21 +114,45 @@ class GolCheckinHandler(BaseCheckinHandler):
                     raise CheckinError(modal_text)
                 await page.locator("gol-button#completeData").click()
                 await self._close_cookie_banner(page)
-
+                await page.wait_for_timeout(4000)
                 await page.locator("gol-modal-passengers #btn-next-trips-complement-passengers").click()
                 await page.locator("#btn-next-trips-complement-baggage-restrition").click()
                 await page.wait_for_timeout(4000)
                 await page.locator("gol-button #contract-service-baggage").click()
+                await page.wait_for_timeout(2000)
+                await page.locator("gol-anchor-bar-orange #btn-next-trips-complement-seap-map").click()
+                await page.wait_for_timeout(35000)
+                screenshot_paths = []
+
+                # Captura cada cartão de embarque individualmente pelo ID dinâmico
+                boarding_cards = page.locator("div[id^='boarding-pass-print-']")
+                count = await boarding_cards.count()
+
+                if count > 0:
+                    for i in range(count):
+                        card = boarding_cards.nth(i)
+                        card_id = await card.get_attribute("id")  # ex: "boarding-pass-print-7F"
+                        seat = card_id.replace("boarding-pass-print-", "") if card_id else str(i)
+                        path = os.path.join("passabot", f"{pnr}_{origin}_assento_{seat}.png")
+                        await card.screenshot(path=path)
+                        screenshot_paths.append(path)
+                else:
+                    # Fallback: screenshot da página inteira
+                    path = os.path.join("passabot", f"{pnr}_{origin}_pagina.png")
+                    await page.screenshot(path=path, full_page=True)
+                    screenshot_paths.append(path)
+                
+                await page.wait_for_timeout(2000)
                 await browser.close()
                 browser = None
 
-            return {
-                "status": "success",
-                "checked_in": True,
-                "boarding_pass": None,
-                "message": "Check-in realizado com sucesso",
-                "detail": None,
-            }
+                return {
+                    "status": "success",
+                    "checked_in": True,
+                    "boarding_pass": None,
+                    "message": "Check-in realizado com sucesso",
+                    "detail": None,
+                }
 
         except Exception as e:
             if browser:

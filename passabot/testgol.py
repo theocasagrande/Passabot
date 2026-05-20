@@ -11,7 +11,6 @@ class DummyPayload:
     destination = "SDU"
     departure_date = "2026-05-20"
     airline = "Gol"
-    checkin_url = "https://b2c.voegol.com.br/check-in/"
     passengers = [DummyPassenger("João da Silva")]
 
 async def main():

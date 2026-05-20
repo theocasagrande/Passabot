@@ -12,7 +12,6 @@ class CheckinRequest(BaseModel):
     return_date: Optional[str] = None
     airline: Literal["Gol", "Latam", "Azul"]
     passengers: List[Passenger]
-    checkin_url: str
 
 class CheckinResponse(BaseModel):
     status: Literal["success", "error"]
